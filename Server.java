@@ -28,6 +28,7 @@ public class Server
                 ClientHandler cH = new ClientHandler(server);
                 Thread t = new Thread(cH);
                 t.start();
+                //change
             }
             
         }

@@ -9,6 +9,7 @@ import java.net.Socket;
 
 public class ClientHandler implements Runnable
 {
+    
     public static ArrayList<ClientHandler> client = new ArrayList<>();
     private Socket s;
     private BufferedReader br;

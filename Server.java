@@ -15,7 +15,6 @@ public class Server
     {
         try
         {
-            
             System.out.println("Server started");
  
             System.out.println("Waiting for a client ...");
@@ -28,7 +27,6 @@ public class Server
                 ClientHandler cH = new ClientHandler(server);
                 Thread t = new Thread(cH);
                 t.start();
-                //change
             }
             
         }

@@ -61,6 +61,7 @@ public class Client
             String msgFromChat;
             while(socket.isConnected())
             {
+                
                 try
                 {
                     msgFromChat = input.readLine();

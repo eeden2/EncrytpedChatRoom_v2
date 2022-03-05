@@ -50,7 +50,7 @@ public class Client
             bb.putInt(encryptionLink.returnPublic().getEncoded().length);
             socket.getOutputStream().write(bb.array());
             socket.getOutputStream().write(encryptionLink.returnPublic().getEncoded());
-            
+            //En Encryption
             
             
             Scanner s = new Scanner(System.in);

@@ -9,6 +9,7 @@ public class Client
     private BufferedReader       input   = null;
     private BufferedWriter       out     = null;
     private String user;
+    private final  byte[] keyByte = ";iosadlifdsbvufb".getBytes();
 
     // constructor to put ip address and port
     public Client(Socket socket, String username) throws Exception
@@ -29,7 +30,7 @@ public class Client
         
     }
 
-    public void sender()
+    public void sender() throws Exception
     {
         try
         {
@@ -41,9 +42,22 @@ public class Client
             while(socket.isConnected())
             {
                 String line = s.nextLine();
-                out.write(user + ": "+line);
-                out.newLine();
-                out.flush();
+                System.out.print("Do you want to Encrypt the Message?(Y/N) ");
+                String temp = s.next();
+                if(temp.equals("Y"))
+                {
+                    Encryption en = new Encryption();
+                    String encrypted = en.EncryptMessage(line.getBytes(), keyByte);
+                    out.write(user + ": "+line);
+                    out.newLine();
+                    out.flush();
+                }
+                else
+                {
+                    out.write(user + ": "+line);
+                    out.newLine();
+                    out.flush();
+                }
             }
         } catch (IOException e)
         {

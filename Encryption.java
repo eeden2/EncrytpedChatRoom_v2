@@ -26,4 +26,9 @@ public class Encryption
         byte[] decryptMessage = c.doFinal(em);
         return new String(decryptMessage);
     }
+
+    public PublicKey returnPublic()
+    {
+        return publicKey;
+    }
 }

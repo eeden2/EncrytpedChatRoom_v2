@@ -1,4 +1,7 @@
 import java.net.*;
+import java.nio.ByteBuffer;
+import java.security.KeyFactory;
+import java.security.PublicKey;
 import java.io.*;
 import java.util.*; 
 
@@ -10,6 +13,8 @@ public class Client
     private BufferedWriter       out     = null;
     private String user;
     private final  byte[] keyByte = ";iosadlifdsbvufb".getBytes();
+    private HashSet<PublicKey> getPubs = new HashSet<>();
+    private final Encryption encryptionLink = new Encryption();
 
     // constructor to put ip address and port
     public Client(Socket socket, String username) throws Exception
@@ -38,6 +43,16 @@ public class Client
             out.newLine();
             out.flush();
 
+            
+            
+            // Sending the Public Key over the network
+            ByteBuffer bb = ByteBuffer.allocate(4);
+            bb.putInt(encryptionLink.returnPublic().getEncoded().length);
+            socket.getOutputStream().write(bb.array());
+            socket.getOutputStream().write(encryptionLink.returnPublic().getEncoded());
+            
+            
+            
             Scanner s = new Scanner(System.in);
             while(socket.isConnected())
             {
@@ -46,8 +61,7 @@ public class Client
                 String temp = s.next();
                 if(temp.equals("Y"))
                 {
-                    Encryption en = new Encryption();
-                    String encrypted = en.EncryptMessage(line.getBytes(), keyByte);
+                    encryptionLink.EncryptMessage(line.getBytes(), keyByte);
                     out.write(user + ": "+line);
                     out.newLine();
                     out.flush();

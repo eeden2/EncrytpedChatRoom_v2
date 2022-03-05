@@ -6,6 +6,7 @@ import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.net.Socket;
+import java.security.PublicKey;
 
 public class ClientHandler implements Runnable
 {
@@ -15,6 +16,7 @@ public class ClientHandler implements Runnable
     private BufferedReader br;
     private BufferedWriter bw;
     private String user;
+    private PublicKey publicKey;
     
     
     public ClientHandler(ServerSocket ss)
@@ -27,6 +29,8 @@ public class ClientHandler implements Runnable
             this.user = br.readLine();
             client.add(this);
             announcement("Server" + user + "has connected.");
+
+
         } catch(IOException i)
         {
                 closer(s,br,bw);

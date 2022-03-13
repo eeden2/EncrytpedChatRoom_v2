@@ -5,13 +5,17 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.net.Socket;
 import java.security.PublicKey;
+import java.util.HashSet;
+import java.util.HashMap;
 
 public class ClientHandler implements Runnable
 {
     
     public static ArrayList<ClientHandler> client = new ArrayList<>();
+    public HashMap<Client, PublicKey> linker = new HashMap<>();
     private Socket s;
     private BufferedReader br;
     private BufferedWriter bw;
@@ -19,16 +23,16 @@ public class ClientHandler implements Runnable
     private PublicKey publicKey;
     
     
-    public ClientHandler(ServerSocket ss)
+    public ClientHandler(Socket ss)
     {
         try
         {
-            this.s = s;
+            this.s = ss;
             if(bw == null) this.bw =  new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
             if(br == null) this.br = new BufferedReader(new InputStreamReader(s.getInputStream()));
             this.user = br.readLine();
             client.add(this);
-            announcement("Server" + user + "has connected.");
+            announcement("Server: " + user + "has connected.");
 
 
         } catch(IOException i)

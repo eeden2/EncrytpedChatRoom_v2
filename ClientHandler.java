@@ -1,27 +1,27 @@
+import javax.crypto.Cipher;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.security.*;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.net.Socket;
-import java.security.PublicKey;
 import java.util.HashSet;
 import java.util.HashMap;
 
-public class ClientHandler implements Runnable
+public class ClientHandler
 {
-    
-    public static ArrayList<ClientHandler> client = new ArrayList<>();
-    public HashMap<Client, PublicKey> linker = new HashMap<>();
-    private Socket s;
-    private BufferedReader br;
-    private BufferedWriter bw;
-    private String user;
-    private PublicKey publicKey;
-    
+    public Socket s;
+    public BufferedReader br;
+    public BufferedWriter bw;
+    public String user;
+    public PublicKey publicKey;
     
     public ClientHandler(Socket ss)
     {
@@ -31,9 +31,26 @@ public class ClientHandler implements Runnable
             if(bw == null) this.bw =  new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
             if(br == null) this.br = new BufferedReader(new InputStreamReader(s.getInputStream()));
             this.user = br.readLine();
-            client.add(this);
-            announcement("Server: " + user + "has connected.");
 
+
+            //Read-In the public Key to hashmap
+            //When the Client connects, they automatically send their public key to the server
+            try{
+                byte[] l = new byte[4];
+                s.getInputStream().read(l,0,4);
+                ByteBuffer bb = ByteBuffer.wrap(l);
+                int len = bb.getInt();
+                byte[] pubKeyByte = new byte[len];
+                s.getInputStream().read(pubKeyByte);
+
+
+                X509EncodedKeySpec kys = new X509EncodedKeySpec(pubKeyByte);
+                KeyFactory kfs = KeyFactory.getInstance("RSA");
+                publicKey = kfs.generatePublic(kys);
+
+            }catch(Exception e){
+                e.printStackTrace();
+            }
 
         } catch(IOException i)
         {
@@ -41,52 +58,19 @@ public class ClientHandler implements Runnable
         }
     }
 
-    @Override
-    public void run()
-    {
-        String recieveMessage;
-        while(s.isConnected())
-        {
-            try
-            {
-                recieveMessage = br.readLine();
-                announcement(recieveMessage);
-            }catch(IOException e)
-            {
-                closer(s,br,bw);
-                break;
-            }
-        }
-    }
-    public void announcement(String m)
-    {
-        for(ClientHandler c : client)
-        {
-            try
-            {
-                if(!c.user.equals(user))
-                { 
-                    c.bw.write(m);
-                    c.bw.newLine();
-                    c.bw.flush();
-                }
-            
-            } catch(IOException e)
-            {
-                closer(s,br,bw);
-            }
-        } 
-    }
 
-    public void removeUser()
+    public byte[] encrypter(String message) throws Exception
     {
-        client.remove(this);
-        announcement("Server: "+ user + "has left.");
+        //Using the Base64 Encoder allows for the String to be sent over a network
+        Cipher encrypter = Cipher.getInstance("RSA");
+        encrypter.init(Cipher.ENCRYPT_MODE,publicKey);
+        byte[] secretMessageBytes = message.getBytes(StandardCharsets.UTF_8);
+        byte[] encryptedMessageBytes = encrypter.doFinal(secretMessageBytes);
+        return encryptedMessageBytes;
     }
 
     public void closer(Socket s, BufferedReader br, BufferedWriter bw)
     {
-        removeUser();
         try{
         s.close();
         br.close();

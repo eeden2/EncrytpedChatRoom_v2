@@ -3,15 +3,17 @@ import java.net.*;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.security.*;
-import java.security.spec.X509EncodedKeySpec;
 import java.util.*;
 
 public class Server
 {
     private PublicKey servPublicKey;
     private PrivateKey servPrivateKey;
-    private ServerSocket server;
+    public ServerSocket server;
+    public HashMap<Socket, String> userRemover = new HashMap<>();
     public HashMap<ClientHandler, PublicKey> linker = new HashMap<>();
+    public String[] userList;
+    public String tempMessage = "No Messages Yet";
 
     public Server(ServerSocket ss) {
         this.server = ss;
@@ -40,6 +42,7 @@ public class Server
             {
                 Socket socket = server.accept();
                 ClientHandler cH = new ClientHandler(socket);
+
                 //Send the server Public Key to Client
                 try{
                     ByteBuffer bb = ByteBuffer.allocate(4);
@@ -52,19 +55,34 @@ public class Server
                 }
 
                 System.out.println(cH.user+" has joined.\nIP: " + ((InetSocketAddress) socket.getRemoteSocketAddress()).getAddress().getHostAddress() +" | Port: " + socket.getLocalPort());
-
+                //Setup User removal for Server GUI
+                userRemover.put(socket,cH.user);
                 linker.put(cH,cH.publicKey);
+                
+                if(userRemover.size()==1){
+                                ArrayList<String> users = new ArrayList<>();
+                                for(ClientHandler ch : linker.keySet())
+                                {
+                                    users.add(ch.user +" "+((InetSocketAddress) ch.s.getRemoteSocketAddress()).getAddress().getHostAddress());
+                                }
+                                String[] user = new String[users.size()];
+                                for(int i = 0;i<users.size();i++)
+                                {
+                                    user[i] = users.get(i);
+                                }
+                                userList = user;
+                      
+                }
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
                         String recieveMessage;
-                        while(!cH.s.isClosed())
+                        while(cH.s.isConnected())
                         {
                             try
                             {
-
-                                //Here is where the DataStream will read the byte[] in order to maintain proper encryption format
                                 recieveMessage = cH.br.readLine();
+                                setCurrentMessage(serverDecryptor(recieveMessage));
                                 announcement(serverDecryptor(recieveMessage));
                             }catch(Exception e)
                             {
@@ -73,17 +91,16 @@ public class Server
                                 break;
                             }
                         }
-                        System.out.println(cH.user+" has left.");
+                        announcement("SERVER: "+cH.user+" has left.");
+                        linker.remove(cH);
+                        userRemover.remove(cH.s);
                     }
                 }).start();
 
             }
             
         }
-        catch(IOException i)
-        {
-            System.out.println("Houston, we have a problem\n"+i);
-        }
+        catch(IOException i) {}
     }
 
     public String serverDecryptor(String s) throws Exception
@@ -93,6 +110,9 @@ public class Server
         cipher.init(Cipher.DECRYPT_MODE,servPrivateKey);
         return new String(cipher.doFinal(decoder.decode(s)));
     }
+
+    public void setCurrentMessage(String s) {tempMessage = s;}
+    public String getcurrentMessage(){return tempMessage;}
 
     public void announcement(String m)
     {
@@ -120,9 +140,34 @@ public class Server
     {
         try
         {   
-            if(server != null) server.close();
+            server.close();
         }catch(IOException e) {}
     }
+
+    public boolean serverStatus()
+    {
+        return server.isBound();
+    }
+
+    public String[] getUsers()
+    {
+        try{
+            ArrayList<String> users = new ArrayList<>();
+            for(ClientHandler ch : linker.keySet())
+            {
+                users.add(ch.user +" "+((InetSocketAddress) ch.s.getRemoteSocketAddress()).getAddress().getHostAddress());
+            }
+            String[] user = new String[users.size()];
+            for(int i = 0;i<users.size();i++)
+            {
+                user[i] = users.get(i);
+            }
+            userList = user;
+            return user;
+    }catch(ConcurrentModificationException cme){}
+        return new String[]{"No Users Connected"};
+    }
+
  
     public static void main(String args[]) throws IOException
     {

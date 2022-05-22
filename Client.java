@@ -10,13 +10,13 @@ import java.util.*;
 public class Client
 {
     // initialize socket and input output
-    private Socket               socket  = null;
-    private BufferedReader       input   = null;
-    private BufferedWriter       out     = null;
-    private String user;
-    private HashSet<PublicKey> getPubs = new HashSet<>();
+    public Socket               socket  = null;
+    public BufferedReader       input   = null;
+    public BufferedWriter       out     = null;
+    public String user;
     private PublicKey publicKey;
 
+    public String currentMessage = "No Messages Yet";
     private PrivateKey privateKey;
     private PublicKey serverPubKey;
     public Client(Socket socket, String username) throws Exception
@@ -86,6 +86,9 @@ public class Client
         
     }
 
+    public void setCurrentMessage(String s) {currentMessage = s;}
+    public String getcurrentMessage(){return currentMessage;}
+
     public String decrypter(String message) throws Exception
     {
         Base64.Decoder decoder = Base64.getDecoder();
@@ -128,6 +131,7 @@ public class Client
 
             }
             System.out.println("Server was Closed.");
+            s.close();
             System.exit(1);
         } catch (IOException e)
         {
@@ -148,6 +152,7 @@ public class Client
                 try
                 {
                     msgFromChat = input.readLine();
+                    setCurrentMessage(decrypter(msgFromChat));
                    if(msgFromChat == null){
                        break;
                    }
@@ -185,16 +190,52 @@ public class Client
         String ip = s.nextLine();
         System.out.print("Enter a Port: ");
         int port = s.nextInt();
-        Socket socket = new Socket(ip, port);
-        Client client = new Client(socket,u);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try{
-                    client.sender();
-                }catch(Exception e){}
+
+        try{
+            Socket socket = new Socket(ip, port);
+            Client client = new Client(socket,u);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try{
+                        client.sender();
+                    }catch(Exception e){}
+                }
+            }).start();
+            client.listener();
+            while(true){
+                if(socket.isClosed()){
+                    System.out.println("The Server Connection has been Disconnected");
+                    System.exit(1);
+                }
             }
-        }).start();
-        client.listener();
+        }catch(Exception e){
+            System.out.println("Connection Refused. Try again");
+            System.out.print("Enter a Username: ");
+            u = s.nextLine();
+            System.out.print("Enter an IP: ");
+            ip = s.nextLine();
+            System.out.print("Enter a Port: ");
+            port = s.nextInt();
+            Socket socket = new Socket(ip, port);
+            Client client = new Client(socket,u);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try{
+                        client.sender();
+                    }catch(Exception e){}
+                }
+            }).start();
+            client.listener();
+            while(true){
+                if(socket.isClosed()){
+                    System.out.println("The Server Connection has been Disconnected");
+                    System.exit(1);
+                    s.close();
+                }
+            }
+        }
+
     }
 }

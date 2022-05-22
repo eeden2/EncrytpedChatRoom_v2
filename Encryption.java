@@ -1,11 +1,10 @@
-import java.net.*;
+
 import java.security.*;
 import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
 public class Encryption 
 {
     private PublicKey publicKey;
-    private PrivateKey privateKey;
     
     public Encryption() {}   
 

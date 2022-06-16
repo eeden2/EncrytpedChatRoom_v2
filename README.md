@@ -4,8 +4,7 @@ Following a Client-Server Modelm this program is a simple chat room that is util
 Screenshots are below of Active Connections and Successful transmission of data.
 
 Server:
-![alt text] 
-(https://github.com/eeden2/EncrytpedChatRoom_v2/blob/d21dad330f415159bc0378439499ac156b7eee63/Screenshots/server%20with%20multiple%20users.png)
+![Screenshots/server with multiple users.png](https://github.com/eeden2/EncrytpedChatRoom_v2/blob/d21dad330f415159bc0378439499ac156b7eee63/Screenshots/server%20with%20multiple%20users.png)
 
 Client:
 ![Screenshots/in client window.png](https://github.com/eeden2/EncrytpedChatRoom_v2/blob/d21dad330f415159bc0378439499ac156b7eee63/Screenshots/in%20client%20window.png)
